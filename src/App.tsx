@@ -1,48 +1,54 @@
 import React, { useState } from 'react';
-import { Brain, MemoryStick as Memory, Puzzle as PuzzlePiece, Wind, Music, Activity, BarChart, BookOpen, MessageSquare, Heart, Trophy } from 'lucide-react';
+import { Brain, MemoryStick as Memory, Puzzle as PuzzlePiece, Wind, Music, Activity, BookOpen, MessageSquare, Heart, Trophy, Home, Gamepad2, Settings } from 'lucide-react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import MemoryMatch from './components/games/MemoryMatch';
+import FocusFlow from './components/games/FocusFlow';
+import PatternPuzzle from './components/games/PatternPuzzle';
+import Modal from './components/Modal';
+import GameTabs from './components/games/GameTabs';
+import EmotionExplorer from './components/games/EmotionExplorer';
+import ConversationQuest from './components/games/ConversationQuest';
+import FocusFrenzy from './components/games/FocusFrenzy';
+import SocialStoryBuilder from './components/games/SocialStoryBuilder';
+import SensoryMatch from './components/games/SensoryMatch';
 
-function Header() {
+function Sidebar() {
   const location = useLocation();
   const navItems = [
-    { path: '/dashboard', icon: BarChart, label: 'Dashboard' },
-    { path: '/learning', icon: BookOpen, label: 'Learning' },
-    { path: '/communication', icon: MessageSquare, label: 'Communication' },
-    { path: '/well-being', icon: Heart, label: 'Well-being' },
-    { path: '/rewards', icon: Trophy, label: 'Rewards' },
-    { path: '/games', icon: PuzzlePiece, label: 'Games' },
+    { path: '/dashboard', icon: Home, label: 'Home' },
+    { path: '/games', icon: Gamepad2, label: 'Game Center' },
+    { path: '/ai-chat', icon: MessageSquare, label: 'AI Assistant' },
+    { path: '/learning', icon: BookOpen, label: 'Learning Hub' },
+    { path: '/progress', icon: BarChart, label: 'Progress' },
+    { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   return (
-    <nav className="bg-white shadow-lg">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <Brain className="w-8 h-8 text-[#0066ff]" />
-            <span className="text-xl font-bold">NeuroSense</span>
-          </Link>
-          <div className="flex space-x-4">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium ${
-                    location.pathname === item.path
-                      ? 'bg-[#0066ff] text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+    <div className="w-64 bg-white h-screen fixed left-0 top-0 shadow-lg p-4">
+      <div className="flex items-center gap-2 mb-8 px-4">
+        <Brain className="w-8 h-8 text-[#0066ff]" />
+        <span className="text-xl font-bold">NeuroSense</span>
       </div>
-    </nav>
+      <nav className="space-y-2">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                location.pathname === item.path
+                  ? 'bg-[#0066ff] text-white'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+              <span className="font-medium">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
   );
 }
 
@@ -86,77 +92,57 @@ function Home() {
 }
 
 function Dashboard() {
-  const navigate = useNavigate();
-  const [selectedMood, setSelectedMood] = useState<string | null>(null);
-
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="bg-white rounded-lg p-8 shadow-lg">
-        <div className="flex items-center gap-3 mb-6">
-          <BarChart className="w-8 h-8 text-[#0066ff]" />
-          <h2 className="text-2xl font-bold text-gray-800">Dashboard</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4">Daily Progress</h3>
-            <div className="space-y-4">
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h4 className="font-medium text-gray-700">Mood & Energy Check-in</h4>
-                <div className="flex gap-4 mt-3">
-                  {['😊', '😐', '😔', '😤'].map((emoji) => (
-                    <button 
-                      key={emoji} 
-                      onClick={() => setSelectedMood(emoji)}
-                      className={`text-2xl hover:scale-110 transition-transform p-2 rounded-lg ${
-                        selectedMood === emoji ? 'bg-blue-100' : ''
-                      }`}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h4 className="font-medium text-gray-700">Today's Achievements</h4>
-                <div className="mt-2 text-gray-600">
-                  <p>🎯 Completed 2 learning modules</p>
-                  <p>⭐ 5-day streak maintained</p>
-                </div>
-              </div>
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">Welcome back, Alex! 👋</h1>
+        <p className="text-gray-600 mt-2">You're on a 5-day streak! Keep it up!</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Daily Goals */}
+        <div className="bg-white rounded-lg p-6 shadow-lg">
+          <h2 className="text-xl font-semibold mb-4">Today's Goals</h2>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 rounded-full border-2 border-[#0066ff]" />
+              <span>Complete 2 focus games</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 rounded-full border-2 border-[#0066ff]" />
+              <span>Practice a conversation with AI</span>
             </div>
           </div>
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <button 
-                className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-                onClick={() => navigate('/learning')}
-              >
-                <BookOpen className="w-6 h-6 text-[#0066ff] mb-2" />
-                <span className="text-sm font-medium">Start Learning</span>
-              </button>
-              <button 
-                className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-                onClick={() => navigate('/well-being')}
-              >
-                <Heart className="w-6 h-6 text-[#0066ff] mb-2" />
-                <span className="text-sm font-medium">Well-being Check</span>
-              </button>
-              <button 
-                className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-                onClick={() => navigate('/rewards')}
-              >
-                <Trophy className="w-6 h-6 text-[#0066ff] mb-2" />
-                <span className="text-sm font-medium">View Rewards</span>
-              </button>
-              <button 
-                className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-                onClick={() => navigate('/activity')}
-              >
-                <Activity className="w-6 h-6 text-[#0066ff] mb-2" />
-                <span className="text-sm font-medium">Activity Log</span>
-              </button>
-            </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="bg-white rounded-lg p-6 shadow-lg">
+          <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <Link
+              to="/games"
+              className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <Gamepad2 className="w-6 h-6 text-[#0066ff] mb-2" />
+              <span className="font-medium">Play Games</span>
+            </Link>
+            <Link
+              to="/ai-chat"
+              className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <MessageSquare className="w-6 h-6 text-[#0066ff] mb-2" />
+              <span className="font-medium">Chat with AI</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* AI Assistant Tips */}
+        <div className="bg-white rounded-lg p-6 shadow-lg">
+          <h2 className="text-xl font-semibold mb-4">AI Assistant Tips</h2>
+          <div className="space-y-3">
+            <p className="text-gray-600">
+              "Try the new Focus Frenzy game to improve your concentration!"
+            </p>
           </div>
         </div>
       </div>
@@ -425,68 +411,48 @@ function Rewards() {
 
 function Games() {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
-  const [gameStarted, setGameStarted] = useState(false);
-  
-  const games = [
-    {
-      id: 'memory',
-      title: 'Memory Match',
-      icon: Memory,
-      description: 'Test and improve your memory by matching pairs of cards.'
-    },
-    {
-      id: 'focus',
-      title: 'Focus Flow',
-      icon: Activity,
-      description: 'Stay focused and react quickly to visual cues.'
-    },
-    {
-      id: 'puzzle',
-      title: 'Pattern Puzzle',
-      icon: PuzzlePiece,
-      description: 'Complete patterns and improve cognitive flexibility.'
-    }
-  ];
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleStartGame = (gameId: string) => {
+  const handleGameSelect = (gameId: string) => {
     setSelectedGame(gameId);
-    setGameStarted(true);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedGame(null);
+  };
+
+  const getGameComponent = (gameId: string) => {
+    switch (gameId) {
+      case 'memory_match':
+        return <MemoryMatch />;
+      case 'focus_flow':
+        return <FocusFlow />;
+      case 'pattern_puzzle':
+        return <PatternPuzzle />;
+      case 'emotion_explorer':
+        return <EmotionExplorer />;
+      case 'conversation_quest':
+        return <ConversationQuest />;
+      case 'focus_frenzy':
+        return <FocusFrenzy />;
+      case 'social_story':
+        return <SocialStoryBuilder />;
+      case 'sensory_match':
+        return <SensoryMatch />;
+      default:
+        return null;
+    }
   };
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="bg-white rounded-lg p-8 shadow-lg">
-        <div className="flex items-center gap-3 mb-6">
-          <PuzzlePiece className="w-8 h-8 text-[#0066ff]" />
-          <h2 className="text-2xl font-bold text-gray-800">Focus Games</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {games.map((game) => {
-            const Icon = game.icon;
-            return (
-              <div
-                key={game.id}
-                className={`bg-gray-50 rounded-lg p-6 cursor-pointer transition-all ${
-                  selectedGame === game.id ? 'ring-2 ring-[#0066ff]' : 'hover:shadow-lg'
-                }`}
-                onClick={() => setSelectedGame(game.id)}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <Icon className="w-6 h-6 text-[#0066ff]" />
-                  <h3 className="text-xl font-semibold">{game.title}</h3>
-                </div>
-                <p className="text-gray-600 mb-4">{game.description}</p>
-                <button 
-                  className="w-full px-4 py-2 bg-[#0066ff] text-white rounded-lg hover:bg-[#0052cc] transition-colors"
-                  onClick={() => handleStartGame(game.id)}
-                >
-                  {gameStarted && selectedGame === game.id ? 'Playing...' : 'Play Now'}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <GameTabs onGameSelect={handleGameSelect} />
+
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+        {selectedGame && getGameComponent(selectedGame)}
+      </Modal>
     </div>
   );
 }
@@ -506,19 +472,21 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-[#f8f9fa]">
-        <Header />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/learning" element={<Learning />} />
-          <Route path="/communication" element={<Communication />} />
-          <Route path="/well-being" element={<Wellbeing />} />
-          <Route path="/rewards" element={<Rewards />} />
-          <Route path="/games" element={<Games />} />
-          <Route path="/period1" element={<Period1 />} />
-          <Route path="/period2" element={<div className="container mx-auto px-4 py-12">Period 2 Content</div>} />
-          <Route path="/period3" element={<div className="container mx-auto px-4 py-12">Period 3 Content</div>} />
-        </Routes>
+        <Sidebar />
+        <div className="ml-64">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/learning" element={<Learning />} />
+            <Route path="/communication" element={<Communication />} />
+            <Route path="/well-being" element={<Wellbeing />} />
+            <Route path="/rewards" element={<Rewards />} />
+            <Route path="/games" element={<Games />} />
+            <Route path="/period1" element={<Period1 />} />
+            <Route path="/period2" element={<div className="container mx-auto px-4 py-12">Period 2 Content</div>} />
+            <Route path="/period3" element={<div className="container mx-auto px-4 py-12">Period 3 Content</div>} />
+          </Routes>
+        </div>
       </div>
     </Router>
   );
