@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase';
 interface Student {
   id: string;
   email: string;
-  name?: string;
+  full_name?: string;
   current_emotion: string | null;
 }
 
@@ -43,6 +43,10 @@ interface Props {
   onClose: () => void;
 }
 
+type SupabaseStudentResponse = {
+  student: Student;
+}[];
+
 export default function ClassroomView({ classroom, onClose }: Props) {
   const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'students' | 'journals' | 'homework' | 'reminders'>('students');
@@ -53,12 +57,15 @@ export default function ClassroomView({ classroom, onClose }: Props) {
   const [newReminder, setNewReminder] = useState({ title: '', message: '' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [availableStudents, setAvailableStudents] = useState<Student[]>([]);
+  const [selectedStudentId, setSelectedStudentId] = useState('');
 
   useEffect(() => {
     if (classroom) {
       fetchJournals();
       fetchHomework();
       fetchReminders();
+      fetchAvailableStudents();
     }
   }, [classroom]);
 
@@ -109,6 +116,138 @@ export default function ClassroomView({ classroom, onClose }: Props) {
     } catch (error) {
       console.error('Error fetching reminders:', error);
       setError('Failed to load reminders');
+    }
+  };
+
+  const fetchAvailableStudents = async () => {
+    try {
+      console.log('Fetching available students...');
+      console.log('Current classroom students:', classroom.students);
+
+      // First get all students
+      const { data: allStudents, error: studentsError } = await supabase
+        .from('profiles')
+        .select('id, email, full_name, current_emotion')
+        .eq('role', 'student');
+
+      if (studentsError) {
+        console.error('Error fetching all students:', studentsError);
+        throw studentsError;
+      }
+
+      console.log('All students:', allStudents);
+
+      // Filter out students who are already in the classroom
+      const availableStudents = allStudents?.filter(
+        student => !classroom.students.some(s => s.id === student.id)
+      ) || [];
+
+      console.log('Available students:', availableStudents);
+      setAvailableStudents(availableStudents);
+    } catch (error) {
+      console.error('Error fetching available students:', error);
+      setError('Failed to load available students');
+    }
+  };
+
+  const addStudentToClassroom = async () => {
+    if (!selectedStudentId) return;
+
+    try {
+      const { error } = await supabase
+        .from('classroom_students')
+        .insert([
+          {
+            classroom_id: classroom.id,
+            student_id: selectedStudentId,
+          },
+        ]);
+
+      if (error) throw error;
+
+      // Refresh the classroom data
+      const { data: updatedClassroom, error: classroomError } = await supabase
+        .from('classrooms')
+        .select(`
+          id,
+          name,
+          image_url,
+          students:classroom_students(
+            student:profiles(
+              id,
+              email,
+              current_emotion
+            )
+          )
+        `)
+        .eq('id', classroom.id)
+        .single();
+
+      if (classroomError) throw classroomError;
+
+      // Update the classroom state
+      const transformedStudents = (updatedClassroom.students as unknown as SupabaseStudentResponse)
+        .map(s => s.student)
+        .filter((student): student is Student => student !== null);
+      
+      classroom.students = transformedStudents;
+
+      // Update available students
+      setAvailableStudents(prev => prev.filter(s => s.id !== selectedStudentId));
+      setSelectedStudentId('');
+    } catch (error) {
+      console.error('Error adding student to classroom:', error);
+      setError('Failed to add student to classroom');
+    }
+  };
+
+  const removeStudentFromClassroom = async (studentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('classroom_students')
+        .delete()
+        .match({
+          classroom_id: classroom.id,
+          student_id: studentId
+        });
+
+      if (error) throw error;
+
+      // Refresh the classroom data
+      const { data: updatedClassroom, error: classroomError } = await supabase
+        .from('classrooms')
+        .select(`
+          id,
+          name,
+          image_url,
+          students:classroom_students(
+            student:profiles(
+              id,
+              email,
+              current_emotion
+            )
+          )
+        `)
+        .eq('id', classroom.id)
+        .single();
+
+      if (classroomError) throw classroomError;
+
+      // Update the classroom state
+      const transformedStudents = (updatedClassroom.students as unknown as SupabaseStudentResponse)
+        .map(s => s.student)
+        .filter((student): student is Student => student !== null);
+      
+      classroom.students = transformedStudents;
+
+      // Update available students
+      const removedStudent = classroom.students.find(s => s.id === studentId);
+      if (removedStudent) {
+        setAvailableStudents(prev => [...prev, removedStudent]);
+      }
+    } catch (error) {
+      console.error('Error removing student from classroom:', error);
+      setError('Failed to remove student from classroom');
     }
   };
 
@@ -229,23 +368,71 @@ export default function ClassroomView({ classroom, onClose }: Props) {
           )}
 
           {activeTab === 'students' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {classroom.students.map((student) => (
-                <div
-                  key={student.id}
-                  className="bg-white rounded-lg shadow p-4 border"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">{student.name || student.email}</h3>
-                    {student.current_emotion && (
-                      <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">
-                        {student.current_emotion}
-                      </span>
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg shadow p-4 border">
+                <h3 className="font-semibold mb-4">Add Student to Classroom</h3>
+                <div className="flex gap-4">
+                  <select
+                    value={selectedStudentId}
+                    onChange={(e) => setSelectedStudentId(e.target.value)}
+                    className="flex-1 px-4 py-2 rounded-lg border"
+                  >
+                    <option value="">Select a student...</option>
+                    {availableStudents && availableStudents.length > 0 ? (
+                      availableStudents.map((student) => (
+                        <option key={student.id} value={student.id}>
+                          {student.full_name || student.email}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>No available students</option>
                     )}
-                  </div>
-                  <p className="text-gray-600 text-sm">{student.email}</p>
+                  </select>
+                  <button
+                    onClick={addStudentToClassroom}
+                    disabled={!selectedStudentId}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    Add Student
+                  </button>
                 </div>
-              ))}
+                {availableStudents.length === 0 && (
+                  <p className="text-gray-500 text-sm mt-2">
+                    No students available to add to this classroom.
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {classroom.students && classroom.students.length > 0 ? (
+                  classroom.students.map((student) => (
+                    <div
+                      key={student.id}
+                      className="bg-white rounded-lg shadow p-4 border"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold">{student.full_name || student.email}</h3>
+                        <button
+                          onClick={() => removeStudentFromClassroom(student.id)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <p className="text-gray-600 text-sm">{student.email}</p>
+                      {student.current_emotion && (
+                        <span className="inline-block mt-2 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">
+                          {student.current_emotion}
+                        </span>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 col-span-full text-center py-4">
+                    No students in this classroom yet.
+                  </p>
+                )}
+              </div>
             </div>
           )}
 

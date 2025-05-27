@@ -100,19 +100,14 @@ export default function TeacherDashboard() {
 
   const fetchStudents = async () => {
     try {
-      console.log('Fetching all students');
+      console.log('Fetching students...');
       const { data, error } = await supabase
         .from('profiles')
         .select('id, email, current_emotion')
-        .eq('user_type', 'student');
+        .eq('role', 'student');
 
       if (error) {
-        console.error('Error fetching students:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
+        console.error('Error fetching students:', error);
         setError(`Failed to load students: ${error.message}`);
         throw error;
       }
@@ -120,7 +115,7 @@ export default function TeacherDashboard() {
       console.log('Fetched students:', data);
       setStudents(data || []);
     } catch (error) {
-      console.error('Error in fetchStudents:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error in fetchStudents:', error);
       setError('Failed to load students. Please try again later.');
     }
   };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { PrivateRoute } from './components/auth/PrivateRoute';
 import Sidebar from './components/Sidebar';
@@ -267,14 +267,10 @@ function AppRoutes() {
   );
 }
 
-function App() {
+export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
+      <AppRoutes />
     </AuthProvider>
   );
 }
-
-export default App;

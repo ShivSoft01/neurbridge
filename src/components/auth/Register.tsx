@@ -52,7 +52,7 @@ function Register() {
             <div className="bg-white rounded-lg shadow-xl p-6 text-center">
               <div className="w-48 h-48 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center">
                 <span className="text-6xl">👨‍🏫</span>
-              </div>
+        </div>
               <h3 className="text-xl font-semibold text-gray-800">AI Teacher</h3>
               <p className="mt-2 text-gray-600">"Education is the key to unlocking potential"</p>
             </div>
@@ -67,43 +67,43 @@ function Register() {
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
                   {error}
-                </div>
-              )}
-              <div>
+            </div>
+          )}
+            <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email
-                </label>
-                <input
-                  type="email"
-                  required
+              </label>
+              <input
+                type="email"
+                required
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div>
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  required
+                Password
+              </label>
+              <input
+                type="password"
+                required
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div>
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  required
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                required
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -132,15 +132,15 @@ function Register() {
                   >
                     Teacher
                   </button>
-                </div>
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
+            </div>
+          </div>
+            <button
+              type="submit"
+              disabled={loading}
                 className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-lg font-medium hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-              >
+            >
                 {loading ? 'Creating account...' : 'Sign Up'}
-              </button>
+            </button>
             </form>
             <p className="mt-6 text-center text-gray-600">
               Already have an account?{' '}

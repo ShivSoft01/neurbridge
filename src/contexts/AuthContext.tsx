@@ -59,14 +59,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('user_type')
+        .select('role')
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
-      setUserType(data.user_type as UserType);
+      if (error) {
+        console.error('Error fetching user type:', error);
+        return;
+      }
+
+      if (data) {
+        setUserType(data.role as UserType);
+      }
     } catch (error) {
-      console.error('Error fetching user type:', error);
+      console.error('Error in fetchUserType:', error);
     }
   };
 
@@ -94,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
         options: {
           data: {
-            userType,
+            role: userType,
           },
         },
       });
@@ -122,12 +128,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error('Profile not created');
         }
         
-        if (profile.user_type !== userType) {
-          console.error('Profile created with incorrect user type:', profile.user_type);
+        if (profile.role !== userType) {
+          console.error('Profile created with incorrect user type:', profile.role);
           // Update the profile with correct user type
           const { error: updateError } = await supabase
             .from('profiles')
-            .update({ user_type: userType })
+            .update({ role: userType })
             .eq('id', data.user.id);
             
           if (updateError) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import StudentClassroomView from './StudentClassroomView';
 
 interface Classroom {
   id: string;
@@ -11,32 +12,14 @@ interface Classroom {
   };
 }
 
-type ClassroomResponse = {
-  classroom: {
-    id: string;
-    name: string;
-    image_url: string | null;
-    teacher: {
-      email: string;
-    };
-  };
+type RawClassroomData = {
+  classroom: Classroom;
 }[];
-
-const emotions = [
-  'Happy',
-  'Excited',
-  'Calm',
-  'Focused',
-  'Confused',
-  'Frustrated',
-  'Anxious',
-  'Tired',
-];
 
 export default function StudentDashboard() {
   const { currentUser } = useAuth();
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
-  const [selectedEmotion, setSelectedEmotion] = useState<string>('');
+  const [selectedClassroom, setSelectedClassroom] = useState<Classroom | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,7 +35,7 @@ export default function StudentDashboard() {
       const { data, error } = await supabase
         .from('classroom_students')
         .select(`
-          classroom:classrooms!inner(
+          classroom:classrooms(
             id,
             name,
             image_url,
@@ -77,9 +60,16 @@ export default function StudentDashboard() {
       console.log('Raw classroom data:', data);
       
       // Transform the data to match our interface
-      const transformedClassrooms = ((data || []) as unknown as ClassroomResponse)
+      const transformedClassrooms = (data as unknown as RawClassroomData)
         .map(item => item.classroom)
-        .filter((classroom): classroom is Classroom => classroom !== null);
+        .filter((classroom): classroom is Classroom => {
+          if (!classroom) return false;
+          if (typeof classroom.id !== 'string') return false;
+          if (typeof classroom.name !== 'string') return false;
+          if (classroom.image_url !== null && typeof classroom.image_url !== 'string') return false;
+          if (!classroom.teacher || typeof classroom.teacher.email !== 'string') return false;
+          return true;
+        });
       
       console.log('Transformed classrooms:', transformedClassrooms);
       setClassrooms(transformedClassrooms);
@@ -91,63 +81,24 @@ export default function StudentDashboard() {
     }
   };
 
-  const updateEmotion = async (emotion: string) => {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ current_emotion: emotion })
-        .eq('id', currentUser?.id);
-
-      if (error) throw error;
-      setSelectedEmotion(emotion);
-    } catch (error) {
-      console.error('Error updating emotion:', error);
-    }
-  };
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {error}
-        </div>
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-50 p-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
+
       <h1 className="text-3xl font-bold text-gray-800 mb-8">My Classrooms</h1>
 
-      {/* Emotion Tracker */}
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">How are you feeling today?</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {emotions.map((emotion) => (
-            <button
-              key={emotion}
-              onClick={() => updateEmotion(emotion)}
-              className={`p-4 rounded-lg text-center transition-all duration-200 ${
-                selectedEmotion === emotion
-                  ? 'bg-indigo-600 text-white transform scale-105'
-                  : 'bg-gray-50 hover:bg-gray-100'
-              }`}
-            >
-              {emotion}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Classrooms */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {classrooms.length === 0 ? (
           <div className="col-span-full text-center py-12">
@@ -172,16 +123,29 @@ export default function StudentDashboard() {
                   <span className="text-4xl">🏫</span>
                 </div>
               )}
-              <div className="p-4">
+              <div className="p-6">
                 <h3 className="text-xl font-semibold mb-2">{classroom.name}</h3>
-                <p className="text-gray-600">
-                  Teacher: {classroom.teacher.email}
+                <p className="text-gray-600 mb-4">
+                  Teacher: {classroom.teacher?.email || 'Unknown'}
                 </p>
+                <button
+                  className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                  onClick={() => setSelectedClassroom(classroom)}
+                >
+                  Enter Classroom
+                </button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {selectedClassroom && (
+        <StudentClassroomView
+          classroom={selectedClassroom}
+          onClose={() => setSelectedClassroom(null)}
+        />
+      )}
     </div>
   );
 } 
